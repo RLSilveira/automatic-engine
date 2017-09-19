@@ -37,7 +37,7 @@ const int LIMIAR = 120;
 // **********************************************************************
 //  void ConvertBlackAndWhite()
 // **********************************************************************
-void ConvertBlackAndWhite()
+void ConvertBlackAndWhite(int Limiar)
 {
     unsigned char r, g, b;
     int x, y;
@@ -50,7 +50,7 @@ void ConvertBlackAndWhite()
             i = Image.GetPointIntensity(x, y); // VERIFICA O TOM DE CINZA DA IMAGEM
             Image.ReadPixel(x, y, r, g, b);
 
-            if (i < LIMIAR)
+            if (i < Limiar)
             {
                 NewImage.DrawPixel(x, y, 0, 0, 0); // exibe um ponto PRETO na imagem
             }
@@ -97,13 +97,25 @@ void InvertImage()
 {
     cout << "Iniciou InvertImage..." << endl;
 
+    // NewImage.SetSize(Image.SizeY(), Image.SizeX(), Image.Channels());
+
+    // unsigned char r, g, b;
+    // for (int x = 0; x < Image.SizeX() - 1; x++)
+    // {
+    //     for (int y = 0; x < Image.SizeY() - 1; y++)
+    //     {
+    //         Image.ReadPixel(x, y, r, g, b);
+    //         NewImage.DrawPixel(y, x, r, g, b);
+    //     }
+    // }
+
     cout << "Concluiu InvertImage." << endl;
 }
 
-void OrdenaVetor(int window[])
+void OrdenaVetor(int window[], int n)
 {
     int temp, i, j;
-    for (i = 0; i < 9; i++)
+    for (i = 0; i < n; i++)
     {
         temp = window[i];
         for (j = i - 1; j >= 0 && temp < window[j]; j--)
@@ -127,21 +139,22 @@ void MontaVetor(int Px, int Py, int Vetor[9])
 // **********************************************************************
 // void Mediana()
 // **********************************************************************
-void Mediana()
+void Mediana(int tam)
 {
     cout << "Iniciou Mediana..." << endl;
 
+    int n = tam * tam;
+    int m = n/2;
+
     int x, y;
-    int Vetor[9] = {};
+    int Vetor[n] = {};
     for (x = 1; x < Image.SizeX() - 1; x++)
     {
         for (y = 1; y < Image.SizeY() - 1; y++)
         {
             MontaVetor(x, y, Vetor);
-            OrdenaVetor(Vetor);
-            NewImage.DrawPixel(x, y, Vetor[5], Vetor[5], Vetor[5]);
-            //i = Image.GetPointIntensity(x,y); // Le o TOM DE CINZA DA IMAGEM
-            //NewImage.DrawPixel(x, y,i,i,i);  // exibe um ponto CINZA na imagem da direita
+            OrdenaVetor(Vetor, n);
+            NewImage.DrawPixel(x, y, Vetor[m], Vetor[m], Vetor[m]);
         }
     }
 
@@ -167,11 +180,11 @@ void GetHistograma(int histograma[])
             histograma[i]++;
         }
     }
-
 }
 
-void DrawHistograma(int histograma[]){
-    
+void DrawHistograma(int histograma[])
+{
+
     int maxY = histograma[0];
     for (int i = 1; i <= 255; i++)
     {
@@ -195,11 +208,11 @@ void DrawHistograma(int histograma[]){
         {
             if (histograma[x / xOffSet] / yOffSet < y)
             {
-                NewImage.DrawPixel(x, y, 255,255,255);
+                NewImage.DrawPixel(x, y, 255, 255, 255);
             }
             else
             {
-                NewImage.DrawPixel(x, y, 0,0,0);
+                NewImage.DrawPixel(x, y, 0, 0, 0);
             }
         }
     }
@@ -212,15 +225,36 @@ void Trabalho1()
 {
     cout << "Iniciou Trabalho 1..." << endl;
 
+    // Remover ruidos
+    Mediana(3);
+    NewImage.CopyTo(&Image);
+
     int histograma[255];
 
     GetHistograma(histograma);
     DrawHistograma(histograma);
 
+
     for (int i = 0; i <= 255; i++)
     {
         cout << "Histograma[" << i << "] = " << histograma[i] << endl;
     }
+
+
+    int max = 0;
+    int max2 = 0;
+    for (int i = 0; i <= 255; i++)
+    {
+        if (histograma[max] < histograma[i]){
+            max2 = max; max = i;
+        }
+    }
+
+
+    ConvertBlackAndWhite(max2);
+
+
+    
 
     cout << "Concluiu Trabalho 1." << endl;
 }
@@ -232,7 +266,8 @@ void init()
 {
     int r;
     // Carrega a uma image
-    string nome = "Celulas\\1Celula\\01_Train_DataSet.png";
+    //string nome = "Celulas\\1Celula\\01_Train_DataSet.png";
+    string nome = "Celulas\\2Celulas\\01_Train_DataSet.png";
     //    string nome = "Ruido2.bmp";
 
     string path = "";
@@ -319,7 +354,7 @@ void keyboard(unsigned char key, int x, int y)
         exit(0); // a tecla ESC for pressionada
         break;
     case '2':
-        ConvertBlackAndWhite();
+        ConvertBlackAndWhite(LIMIAR);
         glutPostRedisplay(); // obrigatório para redesenhar a tela
         break;
 
@@ -337,7 +372,7 @@ void keyboard(unsigned char key, int x, int y)
         glutPostRedisplay(); // obrigatório para redesenhar a tela
         break;
     case 'm':
-        Mediana();
+        Mediana(4);
         glutPostRedisplay(); // obrigatório para redesenhar a tela
         break;
     case 'c':
